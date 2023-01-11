@@ -23,3 +23,8 @@ The performance of this model is evaluated by AUC-ROC metric which is 92%.
 To use the model, input a .jpg image into the model and the model will will return the percentage of blurring of the photo. 
 
 You can use **prod.py** to use this model with a user-friendly interface.
+
+## Model download
+The trained model can be downloaded from the link below:
+
+https://drive.google.com/file/d/1o0R_RUrBrHFDlD2nk2pclRDtrjq9muAa/view?usp=share_link
