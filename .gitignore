@@ -3,3 +3,8 @@
 Dataset/
 test/
 train/
+*.rar
+*.zip
+build/
+dist/
+*.spec
