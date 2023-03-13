@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import torch
 from torchvision import transforms
 from torch.autograd import Variable
 from PIL import Image
@@ -63,18 +62,20 @@ def predict_image(image_path, model, device):
     image_tensor = transform(image).float()
     image_tensor = image_tensor.unsqueeze(0)
 
-    if torch.cuda.is_available() and device == "cuda":
-        image_tensor.cuda()
-        input = Variable(image_tensor.cuda(), requires_grad=True) #torch.Tensor(image_tensor.cuda(), requires_grad=True)
-    else:
-        input = Variable(image_tensor.cuda(), requires_grad=True) #torch.Tensor(image_tensor.cuda(), requires_grad=True)
+    if device == "cuda":
+        image_tensor = image_tensor.cuda()
+    input = Variable(image_tensor, requires_grad=True)
     output = model(input)
-    #label = output.data.cpu().numpy()
     label = nn.functional.softmax(output.data.cpu(), -1)
     label = label.numpy()
     
     return label[0][0]
     #plt.imshow(image)
+
+def format_string(input_string):
+    if input_string.startswith('"') and input_string.endswith('"') or input_string.startswith("'") and input_string.endswith("'"):
+        input_string = input_string.strip('"').strip("'")
+    return input_string
 
 
 def main():
@@ -89,12 +90,15 @@ def main():
         model_name = "2 model lr0.001 e15"
     #print(model_name)
     print("Loading a model...")
-    net.load_state_dict(torch.load(f"{model_name}.pt"))
-
+    if str(device) == "cpu":
+        net.load_state_dict(torch.load(f"{model_name}.pt", map_location=torch.device('cpu')))
+    else:
+        net.load_state_dict(torch.load(f"{model_name}.pt"))
 
     while True:
         file_path = input("Enter a file path of image or enter 'Stop' to exit: ")
         file_path = file_path.lower()
+        file_path = format_string(file_path)
         if file_path == "stop":
             break
         try:
@@ -102,5 +106,5 @@ def main():
         except FileNotFoundError or OSError:
             print("Wrong path to file. Please try another.")
 
-if __name__ == "__main__":
-    main()
+
+main()
