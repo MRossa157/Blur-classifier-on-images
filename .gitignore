@@ -1,10 +1,12 @@
 *.pt
 *csv
-Dataset/
+dataset/
 test/
 train/
 *.rar
 *.zip
 build/
 dist/
+models/
+submissions/
 *.spec
