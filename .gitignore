@@ -1,6 +1,6 @@
 *.pt
 *csv
-Dataset/
+dataset/
 test/
 train/
 *.rar
