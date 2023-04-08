@@ -7,4 +7,6 @@ train/
 *.zip
 build/
 dist/
+models/
+submissions/
 *.spec
