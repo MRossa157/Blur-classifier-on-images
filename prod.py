@@ -3,6 +3,8 @@ import torch.nn as nn
 from torchvision import transforms
 from torch.autograd import Variable
 from PIL import Image
+import warnings
+warnings.filterwarnings("ignore")
 
 
 class Net(nn.Module):
