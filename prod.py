@@ -3,6 +3,8 @@ import torch.nn as nn
 from torchvision import transforms
 from torch.autograd import Variable
 from PIL import Image
+import warnings
+warnings.filterwarnings("ignore")
 
 
 class Net(nn.Module):
@@ -50,27 +52,36 @@ class Net(nn.Module):
         out = out.view(out.size()[0], -1)
         return self.fc(out)
 
+
 def predict_image(image_path, model, device):
     image = Image.open(image_path)
 
     transform = transforms.Compose(
-    [transforms.ToTensor(),
-    transforms.Resize((640, 640)),
+    [transforms.Resize((640, 640)),
+     transforms.ToTensor(),
      transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
     )
 
     image_tensor = transform(image).float()
     image_tensor = image_tensor.unsqueeze(0)
 
-    if device == "cuda":
-        image_tensor = image_tensor.cuda()
-    input = Variable(image_tensor, requires_grad=True)
+    if torch.cuda.is_available() and device == "cuda":
+        image_tensor.cuda()
+        input = Variable(image_tensor.cuda(), requires_grad=True) #torch.Tensor(image_tensor.cuda(), requires_grad=True)
+    else:
+        input = Variable(image_tensor.cuda(), requires_grad=True) #torch.Tensor(image_tensor.cuda(), requires_grad=True)
     output = model(input)
-    label = nn.functional.softmax(output.data.cpu(), -1)
+    #label = output.data.cpu().numpy()
+    label = nn.functional.softmax(output.data.cpu())
     label = label.numpy()
     
-    return label[0][0]
+    return label[0][0].round(2)
     #plt.imshow(image)
+
+
+    
+
+
 
 def format_string(input_string):
     if input_string.startswith('"') and input_string.endswith('"') or input_string.startswith("'") and input_string.endswith("'"):
@@ -95,16 +106,25 @@ def main():
     else:
         net.load_state_dict(torch.load(f"{model_name}.pt"))
 
+    import os
+
     while True:
         file_path = input("Enter a file path of image or enter 'Stop' to exit: ")
         file_path = file_path.lower()
         file_path = format_string(file_path)
-        if file_path == "stop":
-            break
-        try:
-            print("Photo blurred on ", (100 * predict_image(rf"{file_path}", net, device)).round(2), "%")
-        except FileNotFoundError or OSError:
-            print("Wrong path to file. Please try another.")
+        
+        if not os.path.exists(file_path):
+            print("File does not exist. Please try another path.")
+        elif not os.access(file_path, os.R_OK):
+            print("You don't have permission to read this file. Please try another path.")
+        else:
+
+            if file_path == "stop":
+                break
+            try:
+                print("Photo blurred on ", (100 * predict_image(file_path, net, device)).round(2), "%")
+            except:
+                print("Unexpected error.")
 
 
 main()
