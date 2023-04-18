@@ -71,12 +71,16 @@ def predict_image(image_path, model, device):
     else:
         input = Variable(image_tensor.cuda(), requires_grad=True) #torch.Tensor(image_tensor.cuda(), requires_grad=True)
     output = model(input)
+
+    #plt.imshow(image)
+
     #label = output.data.cpu().numpy()
+    #return label[0][0]
+
     label = nn.functional.softmax(output.data.cpu())
     label = label.numpy()
-    
     return label[0][0].round(2)
-    #plt.imshow(image)
+    
 
 
     
@@ -118,13 +122,14 @@ def main():
         elif not os.access(file_path, os.R_OK):
             print("You don't have permission to read this file. Please try another path.")
         else:
-
+            
             if file_path == "stop":
                 break
             try:
-                print("Photo blurred on ", (100 * predict_image(file_path, net, device)).round(2), "%")
+                print(predict_image(file_path, net, device))
+                print("I think photo blurred on ", (100 * predict_image(file_path, net, device)).round(2), "%")
             except:
                 print("Unexpected error.")
 
-
-main()
+if __name__ == "__main__":
+    main()
