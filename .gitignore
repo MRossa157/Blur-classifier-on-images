@@ -1,5 +1,8 @@
 *.pt
-*csv
+*.csv
+*.xlsx
+*.png
+compression.py
 dataset/
 test/
 train/
