@@ -31,7 +31,7 @@ class Net(nn.Module):
             nn.BatchNorm2d(512),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size = 2, stride = 2, padding = 0),       # [512, 40, 40]
-            
+
             nn.Conv2d(in_channels = 512, out_channels = 512, kernel_size = 3, stride = 1, padding = 1), # [512, 40, 40]
             nn.BatchNorm2d(512),
             nn.ReLU(),
@@ -42,8 +42,8 @@ class Net(nn.Module):
             nn.ReLU(),
             nn.Linear(in_features = 1024, out_features = 512),
             nn.ReLU(),
-            nn.Linear(in_features = 512, out_features = 128), 
-            nn.ReLU(), 
+            nn.Linear(in_features = 512, out_features = 128),
+            nn.ReLU(),
             nn.Linear(in_features = 128, out_features = 2)
         )
 
@@ -62,14 +62,11 @@ def predict_image(image_path, model, device):
      transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
     )
 
-    image_tensor = transform(image).float()
-    image_tensor = image_tensor.unsqueeze(0)
+    image_tensor = transform(image).float().unsqueeze(0)
 
-    if torch.cuda.is_available() and device == "cuda":
-        image_tensor.cuda()
-        input = Variable(image_tensor.cuda(), requires_grad=True) #torch.Tensor(image_tensor.cuda(), requires_grad=True)
-    else:
-        input = Variable(image_tensor.cuda(), requires_grad=True) #torch.Tensor(image_tensor.cuda(), requires_grad=True)
+    input_tensor = image_tensor.to(device)
+    input = Variable(input_tensor, requires_grad=True)
+
     output = model(input)
 
     #plt.imshow(image)
@@ -80,18 +77,11 @@ def predict_image(image_path, model, device):
     label = nn.functional.softmax(output.data.cpu())
     label = label.numpy()
     return label[0][0].round(2)
-    
-
-
-    
-
-
 
 def format_string(input_string):
     if input_string.startswith('"') and input_string.endswith('"') or input_string.startswith("'") and input_string.endswith("'"):
         input_string = input_string.strip('"').strip("'")
     return input_string
-
 
 def main():
     print("Starting...")
@@ -116,20 +106,23 @@ def main():
         file_path = input("Enter a file path of image or enter 'Stop' to exit: ")
         file_path = file_path.lower()
         file_path = format_string(file_path)
-        
+
+        if file_path == "stop":
+            break
+
         if not os.path.exists(file_path):
             print("File does not exist. Please try another path.")
+            continue
         elif not os.access(file_path, os.R_OK):
             print("You don't have permission to read this file. Please try another path.")
-        else:
-            
-            if file_path == "stop":
-                break
-            try:
-                print(predict_image(file_path, net, device))
-                print("I think photo blurred on ", (100 * predict_image(file_path, net, device)).round(2), "%")
-            except:
-                print("Unexpected error.")
+            continue
+
+        try:
+            result = predict_image(file_path, net, device)
+            print(result)
+            print("I think photo blurred on ", (100 * result).round(2), "%")
+        except Exception as e:
+            print("Unexpected error:", e)
 
 if __name__ == "__main__":
     main()

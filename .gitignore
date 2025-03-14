@@ -13,3 +13,12 @@ dist/
 models/
 submissions/
 *.spec
+
+# JetBrains IDE
+.idea/
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
